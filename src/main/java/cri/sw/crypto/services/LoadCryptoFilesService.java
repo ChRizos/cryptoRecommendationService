@@ -5,6 +5,8 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.*;
 
 @Service
 public class LoadCryptoFilesService {
+    protected static final Logger logger = LogManager.getLogger();
+
     private final Map<String, List<CryptoCsvData>> cryptoData = new HashMap<>();
 
     public Map<String, List<CryptoCsvData>> getAllCryptoData() {
@@ -36,13 +40,14 @@ public class LoadCryptoFilesService {
             for (Resource resource : resources) {
                 loadCsv(resource);
             }
+            System.out.println("Aa");
         }catch(IOException e){
-            e.printStackTrace();
+            logger.error(e);
         }
 
     }
 
-    private void loadCsv(Resource resource) {
+    private void loadCsv(Resource resource) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
              CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader)) {
 
@@ -56,7 +61,8 @@ public class LoadCryptoFilesService {
                         .add(new CryptoCsvData(date, symbol, price));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e);
+            throw new IOException();
         }
     }
 
