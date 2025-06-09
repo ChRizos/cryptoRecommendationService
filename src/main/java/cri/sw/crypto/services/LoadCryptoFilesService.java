@@ -5,8 +5,9 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,22 @@ public class LoadCryptoFilesService {
             logger.error(e);
             throw new IOException();
         }
+    }
+
+    public void reloadCsvFile(String fullPath) throws IOException {
+        Resource resource = new FileSystemResource(fullPath);
+        String symbol = extractSymbolFromFilename(resource.getFilename());
+
+        loadCsv(resource);
+    }
+
+    public void removeCsvFile(String filename) {
+        String symbol = extractSymbolFromFilename(filename);
+        cryptoData.remove(symbol);
+    }
+
+    private String extractSymbolFromFilename(String filename) {
+        return filename.split("_")[0]; // e.g., BTC from BTC_values.csv
     }
 
 }
