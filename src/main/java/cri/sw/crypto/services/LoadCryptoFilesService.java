@@ -40,7 +40,6 @@ public class LoadCryptoFilesService {
             for (Resource resource : resources) {
                 loadCsv(resource);
             }
-            System.out.println("Aa");
         }catch(IOException e){
             log.error(String.valueOf(e));
         }

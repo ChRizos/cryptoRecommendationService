@@ -1,8 +1,10 @@
 package cri.sw.crypto.services;
 
 import cri.sw.crypto.dtos.SortedCryptosByNormalizedRangeDto;
+import cri.sw.crypto.exceptions.UnsupportedCryptoException;
 import cri.sw.crypto.models.CryptoCsvData;
 import cri.sw.crypto.dtos.StatisticsDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -39,11 +41,12 @@ public class CryptoStatsService {
                 .toList();
     }
 
-    public StatisticsDto getStats(String symbol) {
+    public StatisticsDto getStats(String symbol) throws UnsupportedCryptoException {
         Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
 
         List<CryptoCsvData> prices = data.get(symbol);
-        if (prices == null || prices.isEmpty()) throw new RuntimeException("Crypto not found");
+
+        if (prices == null || prices.isEmpty()) throw new UnsupportedCryptoException(HttpStatus.NOT_FOUND, "Unsupported crypto symbol: " + symbol);
 
         return new StatisticsDto(
                 prices.stream().min(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
