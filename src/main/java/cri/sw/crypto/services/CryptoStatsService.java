@@ -1,7 +1,7 @@
 package cri.sw.crypto.services;
 
 import cri.sw.crypto.dtos.SortedCryptosByNormalizedRangeDto;
-import cri.sw.crypto.entities.CryptoCsvData;
+import cri.sw.crypto.models.CryptoCsvData;
 import cri.sw.crypto.dtos.StatisticsDto;
 import org.springframework.stereotype.Service;
 

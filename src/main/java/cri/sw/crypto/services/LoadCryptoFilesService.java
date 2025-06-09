@@ -1,6 +1,6 @@
 package cri.sw.crypto.services;
 
-import cri.sw.crypto.entities.CryptoCsvData;
+import cri.sw.crypto.models.CryptoCsvData;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import java.io.*;
 import java.time.Instant;
@@ -19,7 +18,7 @@ import java.util.*;
 
 @Service
 public class LoadCryptoFilesService {
-    protected static final Logger logger = LogManager.getLogger();
+    private static final Logger log = LoggerFactory.getLogger(LoadCryptoFilesService.class);
 
     private final Map<String, List<CryptoCsvData>> cryptoData = new HashMap<>();
 
@@ -35,17 +34,31 @@ public class LoadCryptoFilesService {
     @PostConstruct
     public void init() throws IOException {
         try {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] resources = resolver.getResources("classpath:data/*_values.csv");
+            String relativeFolderPath = "./data";
+            List<Resource> resources = getCsvResourcesFromRelativePath(relativeFolderPath);
 
             for (Resource resource : resources) {
                 loadCsv(resource);
             }
             System.out.println("Aa");
         }catch(IOException e){
-            logger.error(e);
+            log.error(String.valueOf(e));
         }
 
+    }
+
+    public List<Resource> getCsvResourcesFromRelativePath(String relativeFolderPath) {
+        File folder = new File(relativeFolderPath); // e.g., "./data"
+        File[] files = folder.listFiles((dir, name) -> name.endsWith("_values.csv"));
+
+        List<Resource> resources = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                resources.add(new FileSystemResource(file));
+            }
+        }
+
+        return resources;
     }
 
     private void loadCsv(Resource resource) throws IOException {
@@ -62,7 +75,7 @@ public class LoadCryptoFilesService {
                         .add(new CryptoCsvData(date, symbol, price));
             }
         } catch (IOException e) {
-            logger.error(e);
+            log.error(String.valueOf(e));
             throw new IOException();
         }
     }

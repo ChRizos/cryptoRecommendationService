@@ -1,4 +1,4 @@
-package cri.sw.crypto.entities;
+package cri.sw.crypto.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
