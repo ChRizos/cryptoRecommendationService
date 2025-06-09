@@ -7,6 +7,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -30,17 +31,18 @@ public class LoadCryptoFilesService {
         return cryptoData.getOrDefault(symbol.toUpperCase(), Collections.emptyList());
     }
 
+    @Value("${crypto.data.dir}")
+    String relativeFolderPath;
 
     @PostConstruct
     public void init() throws IOException {
         try {
-            String relativeFolderPath = "./data";
+
             List<Resource> resources = getCsvResourcesFromRelativePath(relativeFolderPath);
 
             for (Resource resource : resources) {
                 loadCsv(resource);
             }
-            System.out.println("Aa");
         }catch(IOException e){
             log.error(String.valueOf(e));
         }
