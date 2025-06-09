@@ -1,6 +1,6 @@
 package cri.sw.crypto.services;
 
-import cri.sw.crypto.entities.CryptoCsvData;
+import cri.sw.crypto.models.CryptoCsvData;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
