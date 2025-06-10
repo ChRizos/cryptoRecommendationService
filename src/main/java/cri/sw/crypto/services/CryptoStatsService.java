@@ -1,7 +1,9 @@
 package cri.sw.crypto.services;
 
+import cri.sw.crypto.dtos.HighestNormalizedDto;
 import cri.sw.crypto.dtos.SortedCryptosByNormalizedRangeDto;
 import cri.sw.crypto.exceptions.UnsupportedCryptoException;
+import cri.sw.crypto.exceptions.DataNotFoundException;
 import cri.sw.crypto.models.CryptoCsvData;
 import cri.sw.crypto.dtos.StatisticsDto;
 import org.springframework.http.HttpStatus;
@@ -18,35 +20,33 @@ public class CryptoStatsService {
         this.dataLoader = dataLoader;
     }
 
-//    public List<String> getSortedCryptosByNormalizedRange() {
-//        Map<String, List<CryptoPrice>> data = dataLoader.getAllCryptoData();
-//
-//        return data.entrySet().stream()
-//                .map(e -> Map.entry(e.getKey(), getNormalizedRange(e.getValue())))
-//                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
-//                .map(Map.Entry::getKey)
-//                .toList();
-//    }
 
-    public List<SortedCryptosByNormalizedRangeDto> getSortedCryptosByNormalizedRange() {
+    public List<SortedCryptosByNormalizedRangeDto> getSortedCryptosByNormalizedRange(LocalDate startDate, LocalDate endDate) {
         Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
 
         return data.entrySet().stream()
                 .map(entry -> {
                     String symbol = entry.getKey();
-                    double normalized = getNormalizedRange(entry.getValue());
+                    double normalized = getNormalizedRange(entry.getValue(), startDate, endDate);
                     return new SortedCryptosByNormalizedRangeDto(symbol, normalized);
                 })
                 .sorted(Comparator.comparingDouble(SortedCryptosByNormalizedRangeDto::getNormalizedValue).reversed())
                 .toList();
     }
 
-    public StatisticsDto getStats(String symbol) throws UnsupportedCryptoException {
+    public StatisticsDto getStats(String symbol, LocalDate startDate, LocalDate endDate) throws UnsupportedCryptoException {
         Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
 
         List<CryptoCsvData> prices = data.get(symbol);
 
         if (prices == null || prices.isEmpty()) throw new UnsupportedCryptoException(HttpStatus.NOT_FOUND, "Unsupported crypto symbol: " + symbol);
+
+        // Filters the dataset by a startDate and an endDate. If one of those is null it calculates the stats for the whole dataset
+        if (startDate != null && endDate != null) {
+            prices = prices.stream()
+                    .filter(p -> !p.getDate().isBefore(startDate) && !p.getDate().isAfter(endDate))
+                    .toList();
+        }
 
         return new StatisticsDto(
                 prices.stream().min(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
@@ -56,23 +56,44 @@ public class CryptoStatsService {
         );
     }
 
-    public String getHighestNormalizedCryptoForDate(LocalDate date) {
+    public HighestNormalizedDto getHighestNormalizedCryptoForDate(LocalDate date) throws DataNotFoundException {
         Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
 
-        return data.entrySet().stream()
-                .map(e -> {
-                    List<CryptoCsvData> filtered = e.getValue().stream()
-                            .filter(p -> p.getDate().equals(date))
-                            .toList();
-                    if (filtered.isEmpty()) return Map.entry(e.getKey(), 0.0);
-                    return Map.entry(e.getKey(), getNormalizedRange(filtered));
-                })
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("No data");
+        String highestNormalizedCrypto = "";
+        double maxNormalized = -1;
+
+        for (Map.Entry<String, List<CryptoCsvData>> entry : data.entrySet()) {
+            String crypto = entry.getKey();
+            List<CryptoCsvData> filtered = new ArrayList<>();
+
+            for (CryptoCsvData cryptoPrice : entry.getValue()) {
+                if (cryptoPrice.getDate().equals(date)) {
+                    filtered.add(cryptoPrice);
+                }
+            }
+
+            double normalized = filtered.isEmpty() ? 0 : getNormalizedRange(filtered, null, null);
+
+            if ((normalized > maxNormalized) && !filtered.isEmpty()) {
+                maxNormalized = normalized;
+                highestNormalizedCrypto = crypto;
+            }
+        }
+
+        if(maxNormalized == -1){
+            throw new DataNotFoundException(HttpStatus.NOT_FOUND, "No data found for given date");
+        }
+
+        return new HighestNormalizedDto(highestNormalizedCrypto);
     }
 
-    private double getNormalizedRange(List<CryptoCsvData> prices) {
+    private double getNormalizedRange(List<CryptoCsvData> prices, LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null) {
+            prices = prices.stream()
+                    .filter(p -> !p.getDate().isBefore(startDate) && !p.getDate().isAfter(endDate))
+                    .toList();
+        }
+
         double min = prices.stream().mapToDouble(CryptoCsvData::getPrice).min().orElse(0);
         double max = prices.stream().mapToDouble(CryptoCsvData::getPrice).max().orElse(0);
         return (min == 0) ? 0 : (max - min) / min;
