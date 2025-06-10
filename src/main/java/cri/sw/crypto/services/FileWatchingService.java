@@ -19,6 +19,7 @@ public class FileWatchingService {
 
     private static final Logger log = LoggerFactory.getLogger(FileWatchingService.class);
     private final LoadCryptoFilesService dataLoader;
+    private final CryptoStatsService computeService;
 
     @Value("${crypto.data.dir}")
     private String dataDir;
@@ -55,6 +56,8 @@ public class FileWatchingService {
                                 } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                                     dataLoader.removeCsvFile(filename.toString());
                                 }
+
+                                computeService.calculateStatisticsFromData();
                             }
                         }
                         key.reset();
