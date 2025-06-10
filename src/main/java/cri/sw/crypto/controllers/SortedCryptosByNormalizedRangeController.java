@@ -4,10 +4,13 @@ import cri.sw.crypto.services.CryptoStatsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -20,8 +23,9 @@ public class SortedCryptosByNormalizedRangeController {
 
     @GetMapping("/normalized")
     @Operation(summary = "Get cryptos sorted by normalized range", description = "Returns a descending list of cryptos based on their normalized range for the dataset")
-    public List<SortedCryptosByNormalizedRangeDto> getSortedByNormalizedRange() {
-        return cryptoStatsService.getSortedCryptosByNormalizedRange();
+    public List<SortedCryptosByNormalizedRangeDto> getSortedByNormalizedRange(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return cryptoStatsService.getSortedCryptosByNormalizedRange(startDate, endDate);
     }
 
 }

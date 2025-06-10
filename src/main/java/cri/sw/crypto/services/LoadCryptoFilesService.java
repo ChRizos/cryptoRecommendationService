@@ -76,6 +76,11 @@ public class LoadCryptoFilesService {
                 cryptoData.computeIfAbsent(symbol, k -> new ArrayList<>())
                         .add(new CryptoCsvData(date, symbol, price));
             }
+
+            for (List<CryptoCsvData> dataList : cryptoData.values()) {
+                dataList.sort(Comparator.comparing(CryptoCsvData::getDate));
+            }
+
         } catch (IOException e) {
             log.error(String.valueOf(e));
             throw new IOException();
