@@ -15,11 +15,33 @@ import java.util.*;
 @Service
 public class CryptoStatsService {
     private final LoadCryptoFilesService dataLoader;
+    private final Map<String, StatisticsDto> statistics = new HashMap<>();
 
     public CryptoStatsService(LoadCryptoFilesService dataLoader) {
         this.dataLoader = dataLoader;
+
+        calculateStatisticsFromData();
     }
 
+    public void calculateStatisticsFromData() {
+        Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
+
+        statistics.clear();
+
+        for (Map.Entry<String, List<CryptoCsvData>> entry : data.entrySet()) {
+            List<CryptoCsvData> dataList = entry.getValue();
+
+            StatisticsDto statisticsDto = new StatisticsDto(
+                    dataList.stream().min(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
+                    dataList.stream().max(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
+                    dataList.stream().min(Comparator.comparing(CryptoCsvData::getPrice)).get().getPrice(),
+                    dataList.stream().max(Comparator.comparing(CryptoCsvData::getPrice)).get().getPrice()
+            );
+
+            statistics.put(entry.getKey(), statisticsDto);
+        }
+
+    }
 
     public List<SortedCryptosByNormalizedRangeDto> getSortedCryptosByNormalizedRange(LocalDate startDate, LocalDate endDate) {
         Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
@@ -35,25 +57,28 @@ public class CryptoStatsService {
     }
 
     public StatisticsDto getStats(String symbol, LocalDate startDate, LocalDate endDate) throws UnsupportedCryptoException {
-        Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
 
-        List<CryptoCsvData> prices = data.get(symbol);
-
-        if (prices == null || prices.isEmpty()) throw new UnsupportedCryptoException(HttpStatus.NOT_FOUND, "Unsupported crypto symbol: " + symbol);
+        if (!statistics.containsKey(symbol)) throw new UnsupportedCryptoException(HttpStatus.NOT_FOUND, "Unsupported crypto symbol: " + symbol);
 
         // Filters the dataset by a startDate and an endDate. If one of those is null it calculates the stats for the whole dataset
         if (startDate != null && endDate != null) {
+            Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
+
+            List<CryptoCsvData> prices = data.get(symbol);
+
             prices = prices.stream()
                     .filter(p -> !p.getDate().isBefore(startDate) && !p.getDate().isAfter(endDate))
                     .toList();
+
+            return new StatisticsDto(
+                    prices.stream().min(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
+                    prices.stream().max(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
+                    prices.stream().min(Comparator.comparing(CryptoCsvData::getPrice)).get().getPrice(),
+                    prices.stream().max(Comparator.comparing(CryptoCsvData::getPrice)).get().getPrice()
+            );
         }
 
-        return new StatisticsDto(
-                prices.stream().min(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
-                prices.stream().max(Comparator.comparing(CryptoCsvData::getDate)).get().getDate(),
-                prices.stream().min(Comparator.comparing(CryptoCsvData::getPrice)).get().getPrice(),
-                prices.stream().max(Comparator.comparing(CryptoCsvData::getPrice)).get().getPrice()
-        );
+        return statistics.get(symbol);
     }
 
     public HighestNormalizedDto getHighestNormalizedCryptoForDate(LocalDate date) throws DataNotFoundException {

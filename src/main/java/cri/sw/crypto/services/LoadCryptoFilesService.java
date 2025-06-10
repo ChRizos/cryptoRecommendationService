@@ -27,9 +27,6 @@ public class LoadCryptoFilesService {
         return cryptoData;
     }
 
-    public List<CryptoCsvData> getDataForSymbol(String symbol) {
-        return cryptoData.getOrDefault(symbol.toUpperCase(), Collections.emptyList());
-    }
 
     @Value("${crypto.data.dir}")
     String relativeFolderPath;
