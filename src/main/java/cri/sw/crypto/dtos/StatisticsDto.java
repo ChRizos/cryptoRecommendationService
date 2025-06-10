@@ -1,10 +1,14 @@
 package cri.sw.crypto.dtos;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
+@Builder
+@AllArgsConstructor
 public class StatisticsDto {
     @Setter
     @Getter
@@ -21,11 +25,4 @@ public class StatisticsDto {
     @Setter
     @Getter
     private double max;
-
-    public StatisticsDto(LocalDate date, LocalDate date1, double min, double max) {
-        this.oldest = date;
-        this.newest = date1;
-        this.min = min;
-        this.max = max;
-    }
 }
