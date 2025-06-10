@@ -10,7 +10,7 @@
     </parent>
     <groupId>cri.sw</groupId>
     <artifactId>crypto</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>cryptoRecommendationService</name>
     <description>cryptoRecommendationService</description>
     <url/>
