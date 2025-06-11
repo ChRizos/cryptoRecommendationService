@@ -23,6 +23,9 @@ public class CryptoStatsService {
         calculateStatisticsFromData();
     }
 
+    /**
+     * // Calculates the min/max/newest/oldest of all the cryptos on startup or when on file change
+     */
     public void calculateStatisticsFromData() {
         Map<String, List<CryptoCsvData>> data = dataLoader.getAllCryptoData();
 
@@ -56,6 +59,10 @@ public class CryptoStatsService {
                 .toList();
     }
 
+
+    /**
+     * // Returns the min/max/newest/oldest of a specific crypto.
+     */
     public StatisticsDto getStats(String symbol, LocalDate startDate, LocalDate endDate) throws UnsupportedCryptoException {
 
         if (!statistics.containsKey(symbol)) throw new UnsupportedCryptoException(HttpStatus.NOT_FOUND, "Unsupported crypto symbol: " + symbol);
