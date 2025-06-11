@@ -1,3 +1,4 @@
+## Project Prerequisites: java 17
 
 # Create and run the app as a docker image
 
