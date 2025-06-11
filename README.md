@@ -16,3 +16,7 @@ pattern: CRYPTO_NAME_values.csv and the format [timestamp, symbol, price]
 
 - mvn clean package
 - java -jar .\target\crypto-1.0.0.jar
+
+# Documentation Endpoint 
+
+- http://localhost:8080/swagger-ui/index.html#/
