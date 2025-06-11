@@ -27,6 +27,10 @@ public class FileWatchingService {
     private WatchService watchService;
     private ExecutorService executor;
 
+    /**
+     * Method to intercept when there are changes in the data dir and triggers the restoring of the new data and the calculation
+     * of the min/max/newest/oldest statistics
+     */
     @PostConstruct
     public void startWatching() {
         executor = Executors.newSingleThreadExecutor();
