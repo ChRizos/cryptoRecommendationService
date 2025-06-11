@@ -1,6 +1,6 @@
 ## Project Prerequisites: java 17
 
-- Project latest code is on branch release/1.0.0
+- Project's latest code is on branch release/1.0.0
 
 # Create and run the app as a docker image
 
