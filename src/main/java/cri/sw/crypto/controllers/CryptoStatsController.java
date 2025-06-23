@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -22,13 +23,14 @@ public class CryptoStatsController {
 
     @GetMapping("/{symbol}/stats")
     @Operation(summary = "Get cryptos statistics", description = "Returns the oldest/newest/min/max values for a requested crypto")
-    public StatisticsDto getStats(@PathVariable String symbol,
+    public ResponseEntity<StatisticsDto> getStats(@PathVariable String symbol,
                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
 
         try{
-            return cryptoStatsService.getStats(symbol.toUpperCase(), startDate, endDate);
+            StatisticsDto statisticsDto = cryptoStatsService.getStats(symbol.toUpperCase(), startDate, endDate);
+            return ResponseEntity.ok(statisticsDto);
         } catch (UnsupportedCryptoException e) {
             throw new UnsupportedCryptoException(HttpStatus.NOT_FOUND, e.getMessage());
         }
