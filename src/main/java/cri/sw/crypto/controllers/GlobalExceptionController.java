@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 
 @RestControllerAdvice
 public class GlobalExceptionController {
